@@ -21,6 +21,7 @@ typedef struct instruction_encoding {
     unsigned char rd_in_used : 1;
     unsigned char rs1_in_used : 1;
     unsigned char immediate_or_rs2_in_used : 1;
+    unsigned char valid_set : 1; // this to solve the issue of checking for commas as separator for registers
 
 } instruction_encode;
 
@@ -151,25 +152,57 @@ _Bool valid_token(char token[], instruction_encode *encode,unsigned short int cu
             if(encode->rd_in_used == 0) {
                 valid_register(token, encode, 0);
             }
-            else if(encode->rd_in_used == 1){
-                if(encode->rs1_in_used == 0){
-                    valid_register(token, encode,1);
+            else if(encode->rs1_in_used == 0 && encode->rd_in_used == 1 &&  encode->valid_set == 0){
+                if(strcmp( token,",") != 0 ){
+                    memset(text, 0, sizeof(text));
+                    sprintf(text,"Error: Invalid operand, found %s at position %d:%d", token, current_row, current_col);
+                    __message(text);
+                    exit(0);
                 }
-                else if(encode->rs1_in_used == 1){
-                    if(valid_register(token,encode, 2) == 0){
-                        valid_immediate(token, encode,current_row, current_col);
+                else {
+                    encode->valid_set = 1;
+                }
+            }
+            else if(encode->rd_in_used == 1 && encode->valid_set == 1 && encode->rs1_in_used == 0){
+                if(encode->rs1_in_used == 0){
+                    if(valid_register(token, encode,1) == 0){
+                        memset(text, 0, sizeof(text));
+                        sprintf(text,"Error: Invalid operand, found %s at position %d:%d", token, current_row, current_col);
+                        __message(text);
+                        exit(0);
                     }
-                    else if(encode->immediate_or_rs2_in_used == 1){
-                        if(strcmp(token,"EOL") != 0) {
-                            memset(text, 0, sizeof(text));
-                            sprintf(text,"Error: Invalid operand, found %s at position %d:%d", token, current_row, current_col);
-                            __message(text);
-                            exit(0);
-                        }
-                        else {
-                            valid_token_index++;
-                        }
+                    else {
+                        encode->valid_set = 0;
                     }
+
+                }
+            }
+            else if(encode->rs1_in_used == 1 && encode->valid_set == 0){
+                if(strcmp( token,",") != 0 ){
+                    memset(text, 0, sizeof(text));
+                    sprintf(text,"Error: Invalid operand, found %s at position %d:%d", token, current_row, current_col);
+                    __message(text);
+                    exit(0);
+                }
+                else {
+                    encode->valid_set = 1;
+                }
+            }
+            else if(encode->rs1_in_used == 1 && encode->valid_set == 1){
+                if(valid_register(token,encode, 2) == 0){
+                    valid_immediate(token, encode,current_row, current_col);
+                    encode->valid_set = 0;
+                }
+            }
+            else if(encode->immediate_or_rs2_in_used == 1 && encode->valid_set == 0){
+                if(strcmp(token,"EOL") != 0) {
+                    memset(text, 0, sizeof(text));
+                    sprintf(text,"Error: Invalid operand, found %s at position %d:%d", token, current_row, current_col);
+                    __message(text);
+                    exit(0);
+                }
+                else {
+                    valid_token_index++;
                 }
             }
         }
