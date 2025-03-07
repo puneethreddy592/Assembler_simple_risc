@@ -18,11 +18,11 @@ const char *instruction_names[21] = {
 };
 const char *instruction_names_u[21] = {
     "addu", "subu", "mulu", "divu", "modu", "cmpu", "andu", "oru", "notu", "movu",
-    "lslu", "lsru", "asru", "nop", "ldu", "stu", "bequ", "bgtu", "bu", "callu", "ret"
+    "lslu", "lsru", "asru", "nop", "ldu", "stu", "beq", "bgt", "b", "call", "ret"
 };
 const char *instruction_names_h[21] = {
     "addh", "subh", "mulh", "divh", "modh", "cmph", "andh", "orh", "noth", "movh",
-    "lslh", "lsrh", "asrh", "nop", "ldh", "sth", "beqh", "bgth", "bh", "callh", "ret"
+    "lslh", "lsrh", "asrh", "nop", "ldh", "sth", "beq", "bgt", "b", "call", "ret"
 };
 const unsigned int max_operands[21] = {
     3, 3, 3, 3, 3, 2, 3,3, 2,2,3,3,3,0,3,3,1,1,1,1,0
