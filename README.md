@@ -16,8 +16,9 @@ Welcome to the Assembler for Simple RISC! This project is an open-source assembl
 
 --------------------------------------------------------------
 
-The index.php is hosted on the codespace and can access it through this link
+The index.html is hosted on the github pages and can access it through this link: https://sowhatnowgithub.github.io/Assembler_simple_risc/
 
+Now for the people who doesn't go through the index.html hosted page, please go to the end and see the main rules and actions took so far.
 
 # 🚀 How to Contribute
 We welcome all contributions, whether it's fixing bugs, adding features, or improving documentation. Feel free to submit a pull request or open an issue.
