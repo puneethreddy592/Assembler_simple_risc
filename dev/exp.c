@@ -8,14 +8,20 @@ typedef union {
 } immediate_rs2;
 unsigned short valid_token_index = 0; // this is the main variable which tells us the current instruction encoding is done for the correct code written, as given by user.
 typedef struct instruction_encoding {
-    unsigned short int instruction_in; // this will store the interger value of the opcode
+    unsigned short int instruction_in ; // this will store the interger value of the opcode
     unsigned short int r_or_i;
     unsigned short int rd_in;
     unsigned short int rs1_in;
     immediate_rs2 immediate_or_rs2_in;
-    unsigned short int operands_in; // no of operands
     unsigned short int modifier;
     unsigned short int instruction_number;
+
+    unsigned char instruction_in_used : 1; // this has been intially assigned to 1 meaning it has not been assigned it its assigned we will change it to 0
+    unsigned char   r_or_i_used : 1; // u have to know that this means, i am setting the actual value to zero
+    unsigned char rd_in_used : 1;
+    unsigned char rs1_in_used : 1;
+    unsigned char immediate_or_rs2_in_used : 1;
+
 } instruction_encode;
 
 unsigned short int valid_register(char register_name[], instruction_encode *encode,unsigned int type ){// type takes 0 for Rd, 1 for Rs1 and 2 for Rs2
@@ -28,14 +34,17 @@ unsigned short int valid_register(char register_name[], instruction_encode *enco
     }
     if(type == 0){
         encode->rd_in = register_value;
+        encode->rd_in_used = 1;
         return TRUE;
     }
     else if (type == 1){
         encode->rs1_in = register_value;
+        encode->rs1_in_used = 1;
         return TRUE;
     }
     else if(type == 2){
         encode->immediate_or_rs2_in.rs2_in = register_value;
+        encode->immediate_or_rs2_in_used = 1;
         return TRUE;
     }
     else {
@@ -51,12 +60,14 @@ unsigned short int valid_instruction(char instruction_name[], instruction_encode
         if(strcmp(instruction_names[i], instruction_name) == 0) {
             encode->modifier = 0;
             encode->instruction_in = i;
+            encode->instruction_in_used = 1;
             return encode->modifier;
         }
         else if(strcmp(instruction_names_u[i], instruction_name) == 0) {
             encode->r_or_i = 1;
             encode->modifier = 1;
             encode->instruction_in = i;
+            encode->instruction_in_used = 1;
             return encode->modifier;
 
         }
@@ -64,6 +75,7 @@ unsigned short int valid_instruction(char instruction_name[], instruction_encode
             encode->r_or_i = 1;
             encode->modifier = 2;
             encode->instruction_in = i;
+            encode->instruction_in_used = 1;
             return encode->modifier;
         }
     }
@@ -74,14 +86,12 @@ void valid_immediate(char token[], instruction_encode *encode, unsigned short in
         if(strlen(token) < 9){
             encode->r_or_i = 1;
             strcpy(encode->immediate_or_rs2_in.immediate_value_in,token);
-            encode->operands_in = max_operands[encode->instruction_in];
         }
         else if(strlen(token) == 9){
             printf("%c", token[3]);
             if(token[2] == '0' || token[2] == '1' || token[2] == '2' || token[2] == '3' || token[2] == '4' || token[2] == '5' || token[2] == '6' || token[2] == '7'){
                 encode->r_or_i = 1;
                 strcpy(encode->immediate_or_rs2_in.immediate_value_in,token);
-                encode->operands_in = max_operands[encode->instruction_in];
             }
             else {
                 memset(text, 0, sizeof(text));
@@ -106,8 +116,9 @@ void valid_immediate(char token[], instruction_encode *encode, unsigned short in
 _Bool valid_token(char token[], instruction_encode *encode,unsigned short int current_row, unsigned short int current_col){
     // valid_token_index++;
     unsigned short int max;
-    if ( encode->instruction_in){
+    if ( encode->instruction_in_used == 1){
         max = max_operands[encode->instruction_in];
+
         if(max ==0 ){
             if (strcmp(token, "EOL") !=0){
                 char text[100];
@@ -116,19 +127,18 @@ _Bool valid_token(char token[], instruction_encode *encode,unsigned short int cu
                 exit(0);
             }
             else {
-                encode->operands_in = 0;
                 valid_token_index++;
             }
         }
         else if(max == 1){
-
-            if(encode->operands_in != 1) {
+            if(encode->immediate_or_rs2_in_used == 0) {
+                encode->immediate_or_rs2_in_used = 1 ;
                 valid_immediate(token, encode, current_row,current_col);
             }
             else {
             if(strcmp(token,"EOL") != 0) {
                 memset(text, 0, sizeof(text));
-                sprintf(text,"Error: Invalid operand for a 1 one operand instruction %s at position %d:%d", token, current_row, current_col);
+                sprintf(text,"Error: Invalid operand, found %s at position %d:%d", token, current_row, current_col);
                 __message(text);
                 exit(0);
             }
@@ -136,6 +146,32 @@ _Bool valid_token(char token[], instruction_encode *encode,unsigned short int cu
                 valid_token_index++;
             }
          }
+        }
+        else if(max == 3){
+            if(encode->rd_in_used == 0) {
+                valid_register(token, encode, 0);
+            }
+            else if(encode->rd_in_used == 1){
+                if(encode->rs1_in_used == 0){
+                    valid_register(token, encode,1);
+                }
+                else if(encode->rs1_in_used == 1){
+                    if(valid_register(token,encode, 2) == 0){
+                        valid_immediate(token, encode,current_row, current_col);
+                    }
+                    else if(encode->immediate_or_rs2_in_used == 1){
+                        if(strcmp(token,"EOL") != 0) {
+                            memset(text, 0, sizeof(text));
+                            sprintf(text,"Error: Invalid operand, found %s at position %d:%d", token, current_row, current_col);
+                            __message(text);
+                            exit(0);
+                        }
+                        else {
+                            valid_token_index++;
+                        }
+                    }
+                }
+            }
         }
 
     }

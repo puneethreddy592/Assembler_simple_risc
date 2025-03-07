@@ -16,7 +16,7 @@ ld r1, 0x2[r2]
 st r2, 0x2[r]3
 nop
 cmp r3,r6
-call 0x6fffffddf
+call 0x6f
 ret // this is a comment
 label2: bgt 0x12
 hlt
