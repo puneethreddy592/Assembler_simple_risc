@@ -147,7 +147,7 @@ _Bool valid_token(char token[], instruction_encode *encode,unsigned short int cu
             }
          }
         }
-        else if(max == 3){
+        else if(max == 3){ // this code has to check for commas after register update this, register read then we have to check for comma and then check for register
             if(encode->rd_in_used == 0) {
                 valid_register(token, encode, 0);
             }
@@ -172,6 +172,9 @@ _Bool valid_token(char token[], instruction_encode *encode,unsigned short int cu
                     }
                 }
             }
+        }
+        else if(max == 2){
+
         }
 
     }
