@@ -1,6 +1,45 @@
 #include<stdio.h>
+#include <stdlib.h>
 #include <string.h>
-#include "main.c"
+#define TRUE 1
+#define FALSE 0
+
+typedef enum token_instruction {
+    TOKEN_INSTRUNCION,
+    TOKEN_REGISTER,
+    TOKEN_R_OR_I,
+    TOKEN_MODIFIER,
+} token_instruct;
+// declaring my registers and instruction_names;
+const char *registers[16] = {"r0","r1","r2","r3","r4","r5","r6","r7","r8","r9","r10","r11","r12","r13","r14","r15"};
+const char *instruction_names[21] = {
+    "add", "sub", "mul", "div", "mod", "cmp", "and", "or", "not", "mov",
+    "lsl", "lsr", "asr", "nop", "ld", "st", "beq", "bgt", "b", "call", "ret"
+};
+const char *instruction_names_u[21] = {
+    "addu", "subu", "mulu", "divu", "modu", "cmpu", "andu", "oru", "notu", "movu",
+    "lslu", "lsru", "asru", "nop", "ldu", "stu", "beq", "bgt", "b", "call", "ret"
+};
+const char *instruction_names_h[21] = {
+    "addh", "subh", "mulh", "divh", "modh", "cmph", "andh", "orh", "noth", "movh",
+    "lslh", "lsrh", "asrh", "nop", "ldh", "sth", "beq", "bgt", "b", "call", "ret"
+};
+const unsigned int max_operands[21] = {
+    3, 3, 3, 3, 3, 2, 3,3, 2,2,3,3,3,0,2,2,1,1,1,1,0
+};
+//Declaring funcitons
+void __message(char message[]);
+_Bool file_verify(int argc, char *argv[]);
+_Bool __init(int argc, char *argv[]){ // this is the initialsing funcion, that does file verification and sorts
+    __message("Program has initialised....");
+    _Bool _initstatus0 = file_verify(argc, argv);
+    if(!_initstatus0) {
+        __message("The program has been terminated, due to fail in file validation...");
+        exit(0);
+    }
+    return TRUE;
+}
+
 char text[200]; // this will store the message
 unsigned short int valid_in = 0;
 typedef union {
@@ -514,129 +553,56 @@ _Bool pass_token(char token[], instruction_encode *encode, unsigned short int cu
     }
     return TRUE;
 }
-int main(int argc, char *argv[]){ // here i am taking the assembly file input thorough this argument
-    __init(argc, argv);
-    FILE *fptr = fopen(argv[1], "r");
-    char *file_path = argv[1];
-    char source[16000]; // i am taking an instuction lines of 100, max instructions per line is 16 characters excluding spaces, hence 30*1000 = 30000
-    unsigned int source_len = 0;
-    while (1) {
-        char c = fgetc(fptr);
-        if (c == EOF) break;
 
-        if (source_len < sizeof(source) - 1) {
-            source[source_len] = c;
-            source_len++;
-            source[source_len] = '\0';
-        }
-        else{
-            __message("Error: Source buffer overflow, too many tokens in give file, the maximum characters are 16000!!!!\n");
+void __message(char message[]){
+    printf("%s \n", message);
+}
+
+_Bool file_verify(int argc, char *argv[]){
+    if (argc == 1){
+        __message("Error File Has not been passed, terminating the program");
+        return FALSE;
+    }
+    if (argc > 2){
+        __message("Error: More than one argumnets passed, exiting program execution.");
+        return FALSE;
+    }
+    unsigned int length_file_name =strlen(argv[1]);
+    if (length_file_name > 20){
+        __message("File name too big, reduce the file name to less than 20 characters");
+        return FALSE;
+    }
+    FILE *file = fopen(argv[1],"r");
+    if(file == NULL){
+        char text[100];
+        sprintf(text,"Error: File doesn't exist, please check the file name,  \n Given File Name: %s", argv[1]);
+        __message(text);
+        fclose(file);
+        return FALSE;
+    }
+    else {
+        fclose(file);
+        char text[100];
+        sprintf(text,"File exist, please check the file name \n Given File Name: %s", argv[1]);
+        __message(text);
+    }
+    char* extension_file_accepting[4]; // this is to check whether the extension of the file is proper or not
+    // currently accepting only .txt
+    extension_file_accepting[0] = ".txt";
+    unsigned short int index = 0;
+    for (int i=0;i < length_file_name;i++){
+        char c = argv[1][i];
+        if (c == '.'){
+            index = i;
             break;
         }
     }
-
-    unsigned int source_len_copy = source_len;
-
-    unsigned short int current_row=0;
-    unsigned short int current_col=0;
-    unsigned short int current_cur=0; // this guy basically points to the present character that is being tokenized
-    instruction_encode encodes[1000]; // this stores an instruction line encode in struct
-    char token[10] ="";
-    unsigned short int token_index=0;
-    printf("The name of the file is %s \n", file_path);
-    printf("Total No of Characters in the given file is %d \n", source_len);
-
-
-    while(source_len_copy--){ // parse and token while loop
-        if(valid_in == 1){
-            valid_in = 0;
-        }
-       encodes[valid_token_index].instruction_number = valid_token_index+1;
-        char current_c =  source[current_cur];
-        if ( current_c == ' '){
-            current_cur++;
-            pass_token(token, &encodes[valid_token_index], current_row, current_col);
-            token_index=0;
-            memset(token,0,sizeof(token));
-        }
-        else if(current_c == '\n'){
-            pass_token(token, &encodes[valid_token_index], current_row, current_col);
-            token_index=0;
-            memset(token,0,sizeof(token));
-            pass_token("EOL",&encodes[valid_token_index], current_row, current_col);
-            current_row++;
-            current_cur++;
-            current_col=1;
-        }
-        else if(current_c == ','){
-            current_cur++;
-            pass_token(token, &encodes[valid_token_index], current_row, current_col);
-            token_index=0;
-            memset(token,0,sizeof(token));
-            pass_token(",",&encodes[valid_token_index], current_row, current_col);
-        }
-        else if(current_c == '/') {
-            char current_c = source[++current_cur];
-            if (current_c == '/') {
-                while(1){
-                    current_cur++;
-                    current_c = source[current_cur];
-                    if( current_c == '\n'){
-                        pass_token(token, &encodes[valid_token_index], current_row, current_col);
-                        token_index=0;
-                        memset(token,0,sizeof(token));
-                        pass_token("EOL",&encodes[valid_token_index], current_row, current_col);
-                        current_row++;
-                        current_cur++;
-                        current_col = 1;
-                        break;
-                    }
-                }
-            }
-            else {
-                memset(text, 0, sizeof(text));
-                sprintf(text,"Error: Undefined token \"%c\"  at %s:%d:%d ",current_c ,file_path,current_row+1, current_col+1);
-                __message(text);
-                exit(0);
-            }
-
-        }
-        else if(current_c == '['){
-            pass_token(token, &encodes[valid_token_index], current_row, current_col);
-            token_index=0;
-            memset(token,0,sizeof(token));
-            pass_token("[",&encodes[valid_token_index], current_row, current_col);
-            current_cur++;
-        }
-        else if(current_c == ']'){
-            pass_token(token, &encodes[valid_token_index], current_row, current_col);
-            token_index=0;
-            memset(token,0,sizeof(token));
-            pass_token("]",&encodes[valid_token_index], current_row, current_col);
-            current_cur++;
-        }
-        else if (current_c == ':'){ // have to write for labels matching
-            pass_token(":",&encodes[valid_token_index], current_row, current_col);
-            current_cur++;
-        }
-        else if( ' '< current_c && current_c < '0'|| '9' < current_c && current_c < '`' || current_c > 'z' || current_c < ' '){
-            memset(text, 0, sizeof(text));
-            if(strcmp(token,"hlt")) break;
-            sprintf(text,"Error: Undefined token \"%c\" at %s:%d:%d ", current_c,file_path,current_row+1, current_col+1);
-            __message(text);
-            exit(0);
-        }
-        else {
-            token[token_index] = current_c;
-            token_index++;
-            current_cur++;
-            if(token_index > 9){
-                __message("Error: buffer Overflow at token in parse while loop\n");
-            }
-        }
+    char str[20];
+    memset(str, 0, sizeof(str));  // Ensure the string is null-terminated
+    strncpy(str,argv[1]+index,length_file_name - index);
+    if (strcmp(str,extension_file_accepting[0])!=0){
+        __message("Error: Wrong file extension, only .txt files are accepted");
+        return FALSE;
     }
-
-    printf("\nTotal No of instruction encoding done is %d \n", valid_token_index);
-    printf("%s",encodes[1].immediate_or_rs2_in.immediate_value_in);
-    return 0;
+    return TRUE;
 }
