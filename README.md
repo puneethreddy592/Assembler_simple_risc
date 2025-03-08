@@ -103,6 +103,10 @@ If you haven't visited our hosted documentation, please **check the main rules a
 
 ### ⚠️ Key Constraints
 
+⚡ **The immediate value has to written in lowercase alphabets ex: 0x12baf** 
+
+⚡ **The immediate value has to start with in 0x, only 0x is given then error will come** 
+
 ⚡ **Maximum Instructions:** `999`
 
 ⚡ **Character Limit (Excluding Whitespace):** `30,000`
