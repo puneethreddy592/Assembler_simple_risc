@@ -21,30 +21,30 @@ This assembler **translates Simple RISC assembly code** into integer-based binar
 
 ## 📂 Project Structure
 ----------------------------------------
-.
-├── README.md             # 📖 Project Documentation
 
-├── index.html            # 🌐 Web-based documentation (Hosted on GitHub Pages)
+    ├── README.md             # 📖 Project Documentation
 
-├── main.css              # 🎨 Styling for the documentation
+    ├── index.html            # 🌐 Web-based documentation (Hosted on GitHub Pages)
 
-└── dev/
+    ├── main.css              # 🎨 Styling for the documentation
 
-    ├── main.c            # 🏗️ Contains the main() function
+    └── dev/
+
+        ├── main.c            # 🏗️ Contains the main() function
     
-    ├── token_parse.c     # 🔍 Handles tokenization & input validation
+        ├── token_parse.c     # 🔍 Handles tokenization & input validation
     
-    ├── tokens.h          # 🏷️ Header file for tokens
+        ├── tokens.h          # 🏷️ Header file for tokens
     
-    ├── instruction_encoder.c  # 🛠️ Converts tokens to integer representations
+        ├── instruction_encoder.c  # 🛠️ Converts tokens to integer representations
+        
+        ├── out.int           # 📜 Integer-encoded instructions
     
-    ├── out.int           # 📜 Integer-encoded instructions
+        ├── asm.txt           # 📄 Sample assembly code
     
-    ├── asm.txt           # 📄 Sample assembly code
+        ├── asm1.txt          # 📄 Additional sample code
     
-    ├── asm1.txt          # 📄 Additional sample code
-    
-    ├── main              # 🔧 Compiled binary
+        ├── main              # 🔧 Compiled binary
 
 
 ----------------------------------------
@@ -60,9 +60,9 @@ Integer Encoding:       0|1|15|2|0|18
 
 
 - **Opcode Mapping:** Each instruction is assigned a unique integer opcode.
-- 
+  
 - **Register Encoding:** Registers (`rX`) are mapped to their respective
-integer representations.
+integer representations and X is in between 0-15.
 
 - **Immediate Values:** Hex values (e.g., `0x12`) are converted to their decimal equivalents.
 
@@ -109,9 +109,9 @@ If you haven't visited our hosted documentation, please **check the main rules a
 
 ### ⚠️ Key Constraints
 
-⚡ **The immediate value has to written in lowercase alphabets ex: 0x12baf** 
+⚡ **The immediate value has to written in lowercase alphabets. ex:`0x12baf`** 
 
-⚡ **The immediate value has to start with in 0x, only 0x is given then error will come** 
+⚡ **The immediate value has to start with in `0x`, only `0x` is given then error will come** 
 
 ⚡ **Maximum Instructions:** `999`
 
