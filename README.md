@@ -132,5 +132,4 @@ Stay tuned for updates & new features! 🚀
 
 ⭐ **If you like this project, consider giving it a star!** 🌟
 
-📌 **Maintained by:** *Your Name / GitHub Handle*
-📧 **Contact:** *your.email@example.com*
+📌 **Maintained by:** *sowhatnow/sowhatnowgithub*
