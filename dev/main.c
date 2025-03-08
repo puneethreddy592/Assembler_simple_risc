@@ -1,5 +1,6 @@
 #include "tokens.h" // this is to import tokens and registers global arrays;
 #include "instruction_encoder.c"
+#include <string.h>
 /*
 main function starting
 */
@@ -127,15 +128,32 @@ int main(int argc, char *argv[]){ // here i am taking the assembly file input th
         }
     }
 
-    printf("\nTotal No of instruction encoding done is %d \n", valid_token_index);
-remove("out.int");
+printf("\nTotal No of instruction encoding done is %d \n", valid_token_index);
+char file_name[20];
+printf("\n \n Please enter a name for you bin file, don't include any extension (like .txt, .bin) internally we add it and max size is 10 \n fileName: ");
+scanf("%s",file_name);
+char file_bin_name[20];
+strcpy(file_bin_name, file_name);
+strcat(file_bin_name,".bin");
+char file_int_name[20];
+strcpy(file_int_name, file_name);
+strcat(file_int_name,".int");
 
+printf("\nGiven file name, the binaries will be stored in %s\n", file_bin_name);
+printf("\n, The integer equivalent will be stored in %s \n", file_int_name);
 for(int i=0; i<valid_token_index;i++){
-    instruction_encoder_formater(&encodes[i]);
+    instruction_encoder_formater_int(&encodes[i],file_int_name);
 }
 printf("Successfully Instruction encoding for the file is done \n");
+for(int i=0; i<valid_token_index;i++){
+    instruction_encoder_formater_bin(&encodes[i], file_bin_name);
+}
 
-printf("Please check the out.int file for the integer version of the binary instruction encoded code\n");
+printf("Please check the %s file for the integer version of the binary instruction encoded code and also binary file : %s \n", file_int_name,file_bin_name);
+
+
+
+
 return 0;
 }
 
