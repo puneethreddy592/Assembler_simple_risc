@@ -5,11 +5,17 @@ Welcome to the **Simple RISC Assembler**, an open-source assembler written in **
 This assembler **translates Simple RISC assembly code** into integer-based binary representations, ensuring accurate instruction processing and validation.
 
 ### 🔍 Features
+
 ✅ **Instruction Parsing & Tokenization**
+
 ✅ **Hexadecimal & Operand Validation**
+
 ✅ **Register & Label Handling**
+
 ✅ **Binary File Generation**
+
 ✅ **GUI Assembler (Work in Progress 🚧)**
+
 
 ---
 
