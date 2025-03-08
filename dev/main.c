@@ -64,6 +64,7 @@ int main(int argc, char *argv[]){ // here i am taking the assembly file input th
 void __message(char message[]){
     printf("%s \n", message);
 }
+
 _Bool file_verify(int argc, char *argv[]){
     if (argc == 1){
         __message("Error File Has not been passed, terminating the program");

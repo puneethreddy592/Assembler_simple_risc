@@ -16,11 +16,12 @@ typedef struct instruction_encoding {
     immediate_rs2 immediate_or_rs2_in;
     unsigned short int modifier;
     unsigned short int instruction_number;
-
+    char label_placer[10]; // for branch instrunctions we will take either immediate or label, since label might not be defined yet, we will store the name here later when the program reached hlt, we will check whether label is defined in other part of the code
     unsigned int instruction_in_used : 1; // this has been intially assigned to 1 meaning it has not been assigned it its assigned we will change it to 0
     unsigned int   r_or_i_used : 1; // u have to know that this means, i am setting the actual value to zero
     unsigned int rd_in_used : 1;
     unsigned int rs1_in_used : 1;
+    unsigned int label_placer_used: 1;
     unsigned int immediate_or_rs2_in_used : 1;
     unsigned int valid_set : 1; // this to solve the issue of checking for commas as separator for registers
 
@@ -74,7 +75,6 @@ unsigned short int valid_instruction(char instruction_name[], instruction_encode
             encode->instruction_in = i;
             encode->instruction_in_used = 1;
             return encode->modifier;
-
         }
         else if(strcmp(instruction_names_h[i], instruction_name) == 0) {
             encode->r_or_i = 1;
@@ -86,17 +86,47 @@ unsigned short int valid_instruction(char instruction_name[], instruction_encode
     }
     return 5;
 };
+_Bool valid_hexaformat(char token[]){
+    if(token[2] == '\0'){
+        return FALSE;
+    }
+    for(int i=2;i< strlen(token);i++){
+
+        if (!((token[i] >= '0' && token[i] <= '9') || (token[i] >= 'a' && token[i] <= 'f'))) {
+            return FALSE;  // Invalid character found
+        }
+
+    }
+    return TRUE;
+}
 void valid_immediate(char token[], instruction_encode *encode, unsigned short int current_row, unsigned short int current_col){
     if(token[0] == '0' && token[1] == 'x'){
         if(strlen(token) < 9){
-            encode->r_or_i = 1;
-            strcpy(encode->immediate_or_rs2_in.immediate_value_in,token);
-        }
-        else if(strlen(token) == 9){
-            printf("%c", token[3]);
-            if(token[2] == '0' || token[2] == '1' || token[2] == '2' || token[2] == '3' || token[2] == '4' || token[2] == '5' || token[2] == '6' || token[2] == '7'){
+            if(valid_hexaformat(token)){
                 encode->r_or_i = 1;
                 strcpy(encode->immediate_or_rs2_in.immediate_value_in,token);
+            }
+            else {
+                memset(text, 0, sizeof(text));
+                sprintf(text,"Error:Invalid hexainput %s at position %d:%d", token, current_row, current_col);
+                __message(text);
+                exit(0);
+            }
+
+        }
+        else if(strlen(token) == 9){
+            if(token[2] == '0' || token[2] == '1' || token[2] == '2' || token[2] == '3' || token[2] == '4' || token[2] == '5' || token[2] == '6' || token[2] == '7'){
+                if(valid_hexaformat(token)){
+                    encode->r_or_i = 1;
+                    strcpy(encode->immediate_or_rs2_in.immediate_value_in,token);
+                }
+                else {
+                    memset(text, 0, sizeof(text));
+                    sprintf(text,"Error:Invalid hexainput %s at position %d:%d", token, current_row, current_col);
+                    __message(text);
+                    exit(0);
+                }
+
             }
             else {
                 memset(text, 0, sizeof(text));
@@ -119,21 +149,47 @@ void valid_immediate(char token[], instruction_encode *encode, unsigned short in
         exit(0);
     }
 }
+
+typedef struct labels_in{
+    char label_name[10];
+    unsigned short int label_address_pointing_to;
+
+    unsigned short int label_used : 1;
+}label;
+label labels[100];
+signed short int label_index = 0;
+signed short int valid_label_in(char token[]){
+    for(int i = 0; i <= label_index;i++){
+        if(strcmp(labels[i].label_name, token) == 0){
+            return labels[i].label_address_pointing_to;
+        }
+    }
+    return -1;
+}
 _Bool valid_token(char token[], instruction_encode *encode,unsigned short int current_row, unsigned short int current_col){
     // valid_token_index++;
     unsigned short int max;
     unsigned short int valid_inst = 0;
     valid_inst = valid_instruction(token,encode);
-    printf("%d %d %s\n", valid_inst, encode->instruction_in_used,token );
-    if( valid_inst > 2 && encode->instruction_in_used != 1){
-        if (strcmp(token, "EOL") !=0){
+    if(label_index != -1 && labels[label_index].label_used == 1){
+        strncpy(labels[label_index].label_name,token,strlen(token));
+        labels[label_index].label_address_pointing_to = encode->instruction_number;
+        label_index++;
+        return TRUE;
+    }
+    if( (valid_inst > 2 && encode->instruction_in_used != 1)){
+        if(strcmp(token, ":") == 0){
+            labels[label_index].label_used = 1;
+        }
+        else if (strcmp(token, "EOL") !=0){
             memset(text, 0, sizeof(text));
             sprintf(text,"Error: Invalid operand, found %s at position %d:%d", token, current_row, current_col);
             __message(text);
             exit(0);
         }
-
     }
+
+
     if (encode->instruction_in_used == 1 && valid_inst > 2){
         max = max_operands[encode->instruction_in];
 
@@ -152,8 +208,24 @@ _Bool valid_token(char token[], instruction_encode *encode,unsigned short int cu
         }
         else if(max == 1){
             if(encode->immediate_or_rs2_in_used != 1) {
+
                 encode->immediate_or_rs2_in_used = 1 ;
-                valid_immediate(token, encode, current_row,current_col);
+                short int label = valid_label_in(token);
+                if(label == -1){
+                    if(token[0] == '0' && token[1] == 'x'){
+                        valid_immediate(token, encode,current_row,current_col);
+                    }
+                    else {
+                        encode->label_placer_used = 1;
+                        strncpy(encode->label_placer, token, strlen(token));
+                    }
+                }
+                else {
+                    encode->r_or_i = 1;
+                    label = encode->instruction_number - label;
+                    encode->immediate_or_rs2_in.rs2_in = label;
+                    printf("%d \n", label);
+                }
             }
             else {
             if(strcmp(token,"EOL") != 0) {
@@ -239,7 +311,85 @@ _Bool valid_token(char token[], instruction_encode *encode,unsigned short int cu
         }
         else if(max == 2){ // this will be ld - 14, st - 15, mov - 9, cmp - 5, not - 8
             if( encode->instruction_in == 14 || encode->instruction_in == 15 ) {
+                if(encode->rd_in_used != 1 ){
+                    if(valid_register(token, encode, 0) == 1){
+                        encode->valid_set = 1;
+                    }
+                    else {
+                        memset(text, 0, sizeof(text));
+                        sprintf(text,"Error: Invalid operand, found %s at position %d:%d", token, current_row, current_col);
+                        __message(text);
+                        exit(0);
+                    }
+                }
+                else if(encode->rd_in_used == 1 && encode->valid_set == 1 && encode->immediate_or_rs2_in_used != 1 && encode->rs1_in_used != 1){
+                    if(strcmp( token,",") != 0 ){
+                        memset(text, 0, sizeof(text));
+                        sprintf(text,"Error: Invalid operand, found %s at position %d:%d", token, current_row, current_col);
+                        __message(text);
+                        exit(0);
+                    }
+                    else {
+                        encode->valid_set = 0;
+                    }
+                }
+                else if(encode->immediate_or_rs2_in_used != 1 && encode->valid_set == 0 && encode->rd_in_used == 1 && encode->rs1_in_used != 1){
+                    if(valid_register(token,encode, 2) == 0){
+                        valid_immediate(token, encode,current_row, current_col);
+                        encode->immediate_or_rs2_in_used = 1;
+                        encode->valid_set = 1;
+                    }
+                    else {
+                        encode->valid_set = 1;
+                    }
+                }
+                else if(encode->immediate_or_rs2_in_used == 1 && encode->valid_set == 1 && encode->rs1_in_used != 1){
+                    if(strcmp(token,"[") != 0) {
+                        memset(text, 0, sizeof(text));
+                        sprintf(text,"Error: Invalid operand, found %s at position %d:%d instead of [", token, current_row, current_col);
+                        __message(text);
+                        exit(0);
+                    }
+                    else {
+                        encode->valid_set = 0;
+                    }
+                }
+                else if(encode->immediate_or_rs2_in_used == 1 && encode->valid_set == 0 && encode->rs1_in_used != 1){
+                    if(valid_register(token, encode, 1) == 1){
+                        encode->valid_set = 1;
+                    }
+                    else {
+                        memset(text, 0, sizeof(text));
+                        sprintf(text,"Error: Invalid operand, found %s at position %d:%d", token, current_row, current_col);
+                        __message(text);
+                        exit(0);
+                    }
+                }
+                else if(encode->immediate_or_rs2_in_used == 1 && encode->valid_set == 1 && encode->rs1_in_used == 1){
+                    if(strcmp(token,"]") != 0) {
+                        memset(text, 0, sizeof(text));
+                        sprintf(text,"Error: Invalid operand,the max operands is 2, found %s at position %d:%d", token, current_row, current_col);
+                        __message(text);
+                        exit(0);
+                    }
+                    else {
+                        encode->valid_set = 0;
+                    }
+                }
+                else if(encode->immediate_or_rs2_in_used == 1 && encode->valid_set == 0 && encode->rs1_in_used == 1 && encode->rd_in_used == 1){
+                    if(strcmp(token,"EOL") != 0) {
+                        memset(text, 0, sizeof(text));
+                        sprintf(text,"Error: Invalid operand,the max operands is 2, found %s at position %d:%d", token, current_row, current_col);
+                        __message(text);
+                        exit(0);
+                    }
+                    else {
+                        valid_token_index++;
+                        valid_in = 1;
+                        printf("%d token \n", valid_token_index);
 
+                    }
+                }
             }
             else if(encode->instruction_in == 9 || encode->instruction_in == 8){
                 if(encode->rd_in_used != 1 ){
@@ -349,7 +499,13 @@ _Bool pass_token(char token[], instruction_encode *encode, unsigned short int cu
         static int i=0;
         i++;
        printf("%d %s\n", i, token);
-       valid_token(token, encode,current_row + 1, current_col+1);
+       if(strcmp(token,"hlt") == 0){
+           __message("Program Terminating, as hlt function has been reached\n");
+           return FALSE;
+       }
+       else {
+           valid_token(token, encode,current_row + 1, current_col+1);
+       }
     }
 
 

@@ -9,11 +9,11 @@ addh r15, r14, 0x01 // this is a second comment
 mov r12, r2
 movu r12, 0x12
 movh r12, 0x12
-not r1,0xh
+not r1,0xf9
 label:
 not r1,0x33
-ld r1, 0x2[r2]
-st r2, 0x2[r]3
+ld r2, 0x2[r2]
+st r2, 0x2[r5]
 nop
 cmp r3, r8
 call 0x6f

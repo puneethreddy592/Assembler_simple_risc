@@ -1,2 +1,8 @@
-addu r1, r2, 0x3e
-hlt
+start:
+addu r1, r2, 0x3
+nop
+nop
+b skp
+nop
+b start
+skp:
