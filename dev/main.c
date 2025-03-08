@@ -134,6 +134,8 @@ for(int i=0; i<valid_token_index;i++){
     instruction_encoder_formater(&encodes[i]);
 }
 printf("Successfully Instruction encoding for the file is done \n");
+
+printf("Please check the out.int file for the integer version of the binary instruction encoded code\n");
 return 0;
 }
 
