@@ -25,7 +25,7 @@ const char *instruction_names_h[21] = {
     "lslh", "lsrh", "asrh", "nop", "ldh", "sth", "beq", "bgt", "b", "call", "ret"
 };
 const unsigned int max_operands[21] = {
-    3, 3, 3, 3, 3, 2, 3,3, 2,2,3,3,3,0,3,3,1,1,1,1,0
+    3, 3, 3, 3, 3, 2, 3,3, 2,2,3,3,3,0,2,2,1,1,1,1,0
 };
 //Declaring funcitons
 void __message(char message[]);

@@ -1,0 +1,2 @@
+addu r1, r2, 0x3e
+hlt

@@ -1,7 +1,8 @@
 #include<stdio.h>
 #include <string.h>
 #include "main.c"
-char text[200];
+char text[200]; // this will store the message
+unsigned short int valid_in = 0;
 typedef union {
     char immediate_value_in[20];
     unsigned short int rs2_in;
@@ -16,39 +17,42 @@ typedef struct instruction_encoding {
     unsigned short int modifier;
     unsigned short int instruction_number;
 
-    unsigned char instruction_in_used : 1; // this has been intially assigned to 1 meaning it has not been assigned it its assigned we will change it to 0
-    unsigned char   r_or_i_used : 1; // u have to know that this means, i am setting the actual value to zero
-    unsigned char rd_in_used : 1;
-    unsigned char rs1_in_used : 1;
-    unsigned char immediate_or_rs2_in_used : 1;
-    unsigned char valid_set : 1; // this to solve the issue of checking for commas as separator for registers
+    unsigned int instruction_in_used : 1; // this has been intially assigned to 1 meaning it has not been assigned it its assigned we will change it to 0
+    unsigned int   r_or_i_used : 1; // u have to know that this means, i am setting the actual value to zero
+    unsigned int rd_in_used : 1;
+    unsigned int rs1_in_used : 1;
+    unsigned int immediate_or_rs2_in_used : 1;
+    unsigned int valid_set : 1; // this to solve the issue of checking for commas as separator for registers
 
 } instruction_encode;
 
 unsigned short int valid_register(char register_name[], instruction_encode *encode,unsigned int type ){// type takes 0 for Rd, 1 for Rs1 and 2 for Rs2
     unsigned short int register_value = 0;
+    unsigned short int valid = 0;
     for(int i = 0;i<16;i++){
         if(strcmp(registers[i], register_name) == 0){
             register_value = i;
+            valid = 1;
             break;
         }
     }
-    if(type == 0){
+    if(type == 0 && valid==1){
         encode->rd_in = register_value;
         encode->rd_in_used = 1;
         return TRUE;
     }
-    else if (type == 1){
+    else if (type == 1 && valid == 1){
         encode->rs1_in = register_value;
         encode->rs1_in_used = 1;
         return TRUE;
     }
-    else if(type == 2){
+    else if(type == 2 && valid==1){
+        encode->r_or_i = 0;
         encode->immediate_or_rs2_in.rs2_in = register_value;
         encode->immediate_or_rs2_in_used = 1;
         return TRUE;
     }
-    else {
+    else if(type > 2){
         __message("Error: Internal error happened in valid_instruction function in exp.c \n, sorry for the internal error???????\n");
         return FALSE;
     }
@@ -80,7 +84,7 @@ unsigned short int valid_instruction(char instruction_name[], instruction_encode
             return encode->modifier;
         }
     }
-    return FALSE;
+    return 5;
 };
 void valid_immediate(char token[], instruction_encode *encode, unsigned short int current_row, unsigned short int current_col){
     if(token[0] == '0' && token[1] == 'x'){
@@ -112,12 +116,25 @@ void valid_immediate(char token[], instruction_encode *encode, unsigned short in
         memset(text, 0, sizeof(text));
         sprintf(text,"Error: Invalid operand for the instruction, its not in the hexadecimal format %s at position %d:%d", token, current_row, current_col);
         __message(text);
+        exit(0);
     }
 }
 _Bool valid_token(char token[], instruction_encode *encode,unsigned short int current_row, unsigned short int current_col){
     // valid_token_index++;
     unsigned short int max;
-    if ( encode->instruction_in_used == 1){
+    unsigned short int valid_inst = 0;
+    valid_inst = valid_instruction(token,encode);
+    printf("%d %d %s\n", valid_inst, encode->instruction_in_used,token );
+    if( valid_inst > 2 && encode->instruction_in_used != 1){
+        if (strcmp(token, "EOL") !=0){
+            memset(text, 0, sizeof(text));
+            sprintf(text,"Error: Invalid operand, found %s at position %d:%d", token, current_row, current_col);
+            __message(text);
+            exit(0);
+        }
+
+    }
+    if (encode->instruction_in_used == 1 && valid_inst > 2){
         max = max_operands[encode->instruction_in];
 
         if(max ==0 ){
@@ -129,10 +146,12 @@ _Bool valid_token(char token[], instruction_encode *encode,unsigned short int cu
             }
             else {
                 valid_token_index++;
+                printf("%d token \n", valid_token_index);
+                valid_in = 1;
             }
         }
         else if(max == 1){
-            if(encode->immediate_or_rs2_in_used == 0) {
+            if(encode->immediate_or_rs2_in_used != 1) {
                 encode->immediate_or_rs2_in_used = 1 ;
                 valid_immediate(token, encode, current_row,current_col);
             }
@@ -145,14 +164,17 @@ _Bool valid_token(char token[], instruction_encode *encode,unsigned short int cu
             }
             else {
                 valid_token_index++;
+                valid_in = 1;
+                printf("%d token \n", valid_token_index);
+
             }
          }
         }
         else if(max == 3){ // this code has to check for commas after register update this, register read then we have to check for comma and then check for register
-            if(encode->rd_in_used == 0) {
+            if(encode->rd_in_used != 1) {
                 valid_register(token, encode, 0);
             }
-            else if(encode->rs1_in_used == 0 && encode->rd_in_used == 1 &&  encode->valid_set == 0){
+            else if(encode->rs1_in_used != 1 && encode->rd_in_used == 1 &&  encode->valid_set == 0){
                 if(strcmp( token,",") != 0 ){
                     memset(text, 0, sizeof(text));
                     sprintf(text,"Error: Invalid operand, found %s at position %d:%d", token, current_row, current_col);
@@ -163,8 +185,9 @@ _Bool valid_token(char token[], instruction_encode *encode,unsigned short int cu
                     encode->valid_set = 1;
                 }
             }
-            else if(encode->rd_in_used == 1 && encode->valid_set == 1 && encode->rs1_in_used == 0){
-                if(encode->rs1_in_used == 0){
+            else if(encode->rd_in_used == 1 && encode->valid_set == 1 && encode->rs1_in_used != 1){
+
+                if(encode->rs1_in_used != 1){
                     if(valid_register(token, encode,1) == 0){
                         memset(text, 0, sizeof(text));
                         sprintf(text,"Error: Invalid operand, found %s at position %d:%d", token, current_row, current_col);
@@ -177,7 +200,8 @@ _Bool valid_token(char token[], instruction_encode *encode,unsigned short int cu
 
                 }
             }
-            else if(encode->rs1_in_used == 1 && encode->valid_set == 0){
+            else if(encode->rs1_in_used == 1 && encode->valid_set == 0 && encode->immediate_or_rs2_in_used != 1){
+
                 if(strcmp( token,",") != 0 ){
                     memset(text, 0, sizeof(text));
                     sprintf(text,"Error: Invalid operand, found %s at position %d:%d", token, current_row, current_col);
@@ -188,9 +212,13 @@ _Bool valid_token(char token[], instruction_encode *encode,unsigned short int cu
                     encode->valid_set = 1;
                 }
             }
-            else if(encode->rs1_in_used == 1 && encode->valid_set == 1){
+            else if(encode->rs1_in_used == 1 && encode->valid_set == 1 && encode->immediate_or_rs2_in_used != 1){
                 if(valid_register(token,encode, 2) == 0){
                     valid_immediate(token, encode,current_row, current_col);
+                    encode->immediate_or_rs2_in_used = 1;
+                    encode->valid_set = 0;
+                }
+                else {
                     encode->valid_set = 0;
                 }
             }
@@ -203,15 +231,117 @@ _Bool valid_token(char token[], instruction_encode *encode,unsigned short int cu
                 }
                 else {
                     valid_token_index++;
+                    valid_in = 1;
+                    printf("%d token \n", valid_token_index);
+
                 }
             }
         }
-        else if(max == 2){
+        else if(max == 2){ // this will be ld - 14, st - 15, mov - 9, cmp - 5, not - 8
+            if( encode->instruction_in == 14 || encode->instruction_in == 15 ) {
 
+            }
+            else if(encode->instruction_in == 9 || encode->instruction_in == 8){
+                if(encode->rd_in_used != 1 ){
+                    if(valid_register(token, encode, 0) == 1){
+                        encode->valid_set = 1;
+                    }
+                    else {
+                        memset(text, 0, sizeof(text));
+                        sprintf(text,"Error: Invalid operand, found %s at position %d:%d", token, current_row, current_col);
+                        __message(text);
+                        exit(0);
+                    }
+                }
+                else if(encode->rd_in_used == 1 && encode->valid_set == 1 && encode->immediate_or_rs2_in_used != 1){
+                    if(strcmp( token,",") != 0 ){
+                        memset(text, 0, sizeof(text));
+                        sprintf(text,"Error: Invalid operand, found %s at position %d:%d", token, current_row, current_col);
+                        __message(text);
+                        exit(0);
+                    }
+                    else {
+                        encode->valid_set = 0;
+                    }
+                }
+                else if(encode->immediate_or_rs2_in_used != 1 && encode->valid_set == 0 && encode->rd_in_used == 1){
+                    if(valid_register(token,encode, 2) == 0){
+                        valid_immediate(token, encode,current_row, current_col);
+                        encode->immediate_or_rs2_in_used = 1;
+                        encode->valid_set = 1;
+                    }
+                    else {
+                        encode->valid_set = 1;
+                    }
+                }
+                else if(encode->immediate_or_rs2_in_used == 1 && encode->valid_set == 1){
+                    if(strcmp(token,"EOL") != 0) {
+                        memset(text, 0, sizeof(text));
+                        sprintf(text,"Error: Invalid operand,the max operands is 2, found %s at position %d:%d", token, current_row, current_col);
+                        __message(text);
+                        exit(0);
+                    }
+                    else {
+                        valid_token_index++;
+                        valid_in = 1;
+                        printf("%d token \n", valid_token_index);
+
+                    }
+                }
+            }
+            else if(encode->instruction_in == 5){
+                if(encode->rs1_in_used != 1 && encode->valid_set == 0){
+                    if(valid_register(token, encode, 1) == 1){
+                        encode->valid_set = 1;
+                    }
+                    else {
+                        memset(text, 0, sizeof(text));
+                        sprintf(text,"Error: Invalid operand, found %s at position %d:%d", token, current_row, current_col);
+                        __message(text);
+                        exit(0);
+                    }
+                }
+                else if(encode->rs1_in_used == 1 && encode->valid_set == 1 && encode->immediate_or_rs2_in_used != 1){
+
+                    if(strcmp( token,",") != 0 ){
+                        memset(text, 0, sizeof(text));
+                        sprintf(text,"Error: Invalid operand, found %s at position %d:%d", token, current_row, current_col);
+                        __message(text);
+                        exit(0);
+                    }
+                    else {
+                        encode->valid_set = 0;
+                    }
+                }
+
+                else if(encode->rs1_in_used == 1 && encode->valid_set == 0 && encode->immediate_or_rs2_in_used != 1){
+                    if(valid_register(token,encode, 2) == 0){
+                        valid_immediate(token, encode,current_row, current_col);
+                        encode->immediate_or_rs2_in_used = 1;
+                        encode->valid_set = 1;
+                    }
+                    else {
+                        encode->valid_set = 1;
+                    }
+                }
+                else if(encode->immediate_or_rs2_in_used == 1 && encode->valid_set == 1){
+                    if(strcmp(token,"EOL") != 0) {
+                        memset(text, 0, sizeof(text));
+                        sprintf(text,"Error: Invalid operand,the max operands is 2, found %s at position %d:%d", token, current_row, current_col);
+                        __message(text);
+                        exit(0);
+                    }
+                    else {
+                        valid_token_index++;
+                        valid_in = 1;
+                        printf("%d token \n", valid_token_index);
+
+                    }
+                }
+                }
+            }
         }
 
-    }
-    valid_instruction(token,encode);
     return FALSE;
 }
 _Bool pass_token(char token[], instruction_encode *encode, unsigned short int current_row, unsigned short int current_col){ // whenever a token is generated here the nessecary validation happens
@@ -261,8 +391,10 @@ int main(int argc, char *argv[]){ // here i am taking the assembly file input th
     printf("Total No of Characters in the given file is %d \n", source_len);
 
 
-
     while(source_len_copy--){ // parse and token while loop
+        if(valid_in == 1){
+            valid_in = 0;
+        }
        encodes[valid_token_index].instruction_number = valid_token_index+1;
         char current_c =  source[current_cur];
         if ( current_c == ' '){
