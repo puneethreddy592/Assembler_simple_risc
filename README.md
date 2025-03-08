@@ -12,6 +12,8 @@ This assembler **translates Simple RISC assembly code** into integer-based binar
 
 ✅ **Register & Label Handling**
 
+✅ **Binary equivalent integer file generation**
+
 ✅ **Binary File Generation**
 
 ✅ **GUI Assembler (Work in Progress 🚧)**
