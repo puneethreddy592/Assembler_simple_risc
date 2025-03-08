@@ -2,7 +2,7 @@ start:
 addu r1, r2, 0x3
 nop
 nop
-b skp
+b 0x123
 nop
 b start
 skp:

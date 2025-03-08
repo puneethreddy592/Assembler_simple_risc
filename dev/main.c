@@ -1,5 +1,5 @@
 #include "tokens.h" // this is to import tokens and registers global arrays;
-#include "token_parse.c"
+#include "instruction_encoder.c"
 /*
 main function starting
 */
@@ -25,7 +25,7 @@ int main(int argc, char *argv[]){ // here i am taking the assembly file input th
             break;
         }
     }
-
+    fclose(fptr);
     unsigned int source_len_copy = source_len;
 
     unsigned short int current_row=0;
@@ -128,8 +128,13 @@ int main(int argc, char *argv[]){ // here i am taking the assembly file input th
     }
 
     printf("\nTotal No of instruction encoding done is %d \n", valid_token_index);
-    printf("%s",encodes[1].immediate_or_rs2_in.immediate_value_in);
-    return 0;
+remove("out.int");
+
+for(int i=0; i<valid_token_index;i++){
+    instruction_encoder_formater(&encodes[i]);
+}
+printf("Successfully Instruction encoding for the file is done \n");
+return 0;
 }
 
 

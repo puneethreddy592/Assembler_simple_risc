@@ -44,7 +44,7 @@ char text[200]; // this will store the message
 unsigned short int valid_in = 0;
 typedef union {
     char immediate_value_in[20];
-    unsigned short int rs2_in;
+    signed short int rs2_in;
 } immediate_rs2;
 unsigned short valid_token_index = 0; // this is the main variable which tells us the current instruction encoding is done for the correct code written, as given by user.
 typedef struct instruction_encoding {
@@ -256,13 +256,13 @@ _Bool valid_token(char token[], instruction_encode *encode,unsigned short int cu
                     }
                     else {
                         encode->label_placer_used = 1;
-                        strncpy(encode->label_placer, token, strlen(token));
+                        strcpy(encode->label_placer, token);
                     }
                 }
                 else {
-                    encode->r_or_i = 1;
+                    encode->r_or_i = 0;
                     label = encode->instruction_number - label;
-                    encode->immediate_or_rs2_in.rs2_in = label;
+                    encode->immediate_or_rs2_in.rs2_in = (-1)*label;
                     printf("%d \n", label);
                 }
             }
