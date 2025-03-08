@@ -333,7 +333,7 @@ Instructions:- <i>nop, ret </i>
 <h4>1-Address Instruction Encdoing</h4>
 Instructions:- <i>call, b, beq, bgt</i>
 <p>The first five bits are for the Opcode</p>
-<p>The next 27 bits are for the relative address</p>
+<p>The next 27 bits are for the relative address, we have to note here that modifiers doesn't make sense, as it is reltive offset and 27bits are total value</p>
 <p>Meaning that PC(program counter) + offset*4, where offset is the 27bits immediate value</p>
 <h4>3-Address Instruction Encoding Format</h4>
 Instructions:- <i>add, sub, mul, div, mod, and, or, lsl, lsr, asr</i>
@@ -351,30 +351,151 @@ Instructions: <i>cmp, not, mov</i>
 instruction:- <i>ld Rd, imm[rs1]</i>
 <p>The format for this ld and st is, the first five bits are opcode, and Rd will be 7th to 10th bits, Rs1 will be 11th - 14th bits, and last 18 bits for the immediate value including modifier</p>
 
-<pre>
-Things To take care of:
-0.Relative Addressing and ORG
-1. Valid Opcode Verification
-2. Valid operands for corresponding opcodes verificatrion
-3. Mapping operands with there codes
-4. Valid registers addressing modes
-5. Modifiers considersation
-6. Labels considerations, mapping with instruction address
-7. Generation of binary file and then hexa file
 
+    <h1>Assembler Development Guidelines</h1>
+    <blockquote>I have provided a out.txt file which has intger equivalent code of binary to ensure readibility for the user.</blockquote>
 
-Primary build up:
-0. Verify the limit of immediate value, in MOV it can be 32bits 8hex but in other immediate it has to 16bits meaning 4hex
-1. Create a function to convert decimal to binary
-2. Create a function to convert hexa to binary
-3. Create a mapping criteria for instruction line and Labels
-4. Create a function to identify whether it is r or t type
-5. Create a thing to tokenise thaem
+    <pre>
 
-Rules
-1. The immediate value to be passed should be written in lower characters only
+    </pre>
+    <div class="section">
+        <h2>1. Key Considerations</h2>
+        <h3>1.1 Relative Addressing and ORG</h3>
+        <ul>
+            <li>Ensure correct handling of <strong>relative addressing</strong> for branch instructions.</li>
+            <li>Manage the <strong>ORG directive</strong> to properly set the starting address.</li>
+        </ul>
+
+        <h3>1.2 Opcode and Operand Validation</h3>
+        <ul>
+            <li>Verify that all <strong>opcodes</strong> are valid.</li>
+            <li>Ensure <strong>operands</strong> match their corresponding opcodes.</li>
+            <li>Map operands to their <strong>respective codes</strong>.</li>
+        </ul>
+
+        <h3>1.3 Register Addressing Modes</h3>
+        <ul>
+            <li>Validate <strong>register addressing modes</strong> to ensure correct syntax and operation.</li>
+        </ul>
+
+        <h3>1.4 Modifiers Handling</h3>
+        <ul>
+            <li>Account for <strong>instruction modifiers</strong> if applicable.</li>
+        </ul>
+
+        <h3>1.5 Label Processing</h3>
+        <ul>
+            <li>Map <strong>labels</strong> with their respective instruction addresses.</li>
+            <li>Handle <strong>label offsets</strong> correctly, considering whether the label appears before or after the referencing instruction.</li>
+        </ul>
+
+        <h3>1.6 Binary File Generation</h3>
+        <ul>
+            <li>Implemented proper conversion of instructions data into <strong>integer files</strong>, then convert to binary.</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>2. Tasks Done</h2>
+        <h3>2.1 Tokenization and Parsing</h3>
+        <ul>
+            <li>Completed the <strong>tokenization and parsing</strong> for <code>LD</code> and <code>ST</code> instructions. As they have different formats </li>
+        </ul>
+
+        <h3>2.2 Hexadecimal Input Validation</h3>
+        <ul>
+            <li>Ensure that each <strong>hexadecimal character</strong> is within the valid range (<code>0-9, a-f</code>). And max offset comes when branch instructions are used, 27bits input maximum is done, max allowed hex is 7ffffff</li>
+        </ul>
+
+        <h3>2.3 Label and Offset Considerations</h3>
+        <ul>
+            <li>When encountering a colon (<code>:</code>), treat it as a delimiter that <strong>precedes a label</strong>.</li>
+            <li>Maintain a <strong>label holder</strong> to store the instruction number of each label.</li>
+            <li>When a label is used as an operand in an instruction, match it with its stored instruction number to determine the offset.</li>
+        </ul>
+
+        <h3>2.4 Branch Instructions and Labels</h3>
+        <ul>
+            <li>Properly <strong>convert and process labels</strong> in branch instructions.</li>
+            <li>If a <strong>label appears above</strong> the referencing instruction, the offset is <strong>negative</strong>.</li>
+            <li>If a <strong>label appears below</strong> the referencing instruction, the offset is <strong>positive</strong>.</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>3. Core Development Tasks</h2>
+        <h3>3.1 Immediate Value Validation</h3>
+        <ul>
+            <li>The immediate value validation with respect to modifier and instructin based is taken care of.</li>
+        </ul>
+
+        <h3>3.2 Essential Functions</h3>
+        <ul>
+            <li><strong>Decimal to Binary Conversion</strong> – Implement a function to convert <strong>decimal numbers</strong> to binary.</li>
+            <li><strong>Hexadecimal to Decimal</strong> – Implemented a function to convert <strong>hexadecimal numbers</strong> to decimals, to store in intermediate file called out.int.</li>
+            <li><strong>Instruction-Label Mapping</strong> – Created a <strong>mapping mechanism</strong> to track labels and their corresponding instruction addresses.</li>
+            <li><strong>Instruction Type Identification</strong> – Implemented logic to distinguish between <strong>R-type</strong> and <strong>I-type</strong> instructions.</li>
+            <li><strong>Tokenization Implementation</strong> – Developed a tokenizer to process <strong>assembly instructions and labels</strong> effectively.</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>4. Assembly Language Rules</h2>
+        <h3>4.0 Assemble Language program should be stored in .txt only,To ensure proper encoding this was nessesary, if you want to have more extensioins then you have to change parameters in opcode_tokens.c file in github page or contact the developer </h3>
+        <ul>
+            <li>When compiling the code, please go to github repository for detailed assembler exectution process</li>
+            <a href="https://github.com/sowhatnowgithub/Assembler_simple_risc"> Github page</a>
+            <li>There is an intermediate file called out.int, which user can use to read the encoded instructions in integer for easy readability, the binary file will be generated based on this out.int file only</li>
+        </ul>
+        <h3>4.1 Immediate Value Formatting</h3>
+        <ul>
+            <li>Immediate values must be written in <strong>lowercase only</strong>.</li>
+            <li>The correct format is <code>0x24ab</code>, ensuring both a <strong>prefix (0x)</strong> and a <strong>suffix (h) should not be added</strong>.</li>
+            <li>Providing only <code>0x</code> without a value will result in an <strong>error</strong>.</li>
+        </ul>
+
+        <h3>4.2 Register Naming Convention</h3>
+        <ul>
+            <li>Registers must be named as <code>rX</code>, where <code>X</code> is a valid number between 0-15.</li>
+            <li>Valid register names: <code>r3, r14</code></li>
+            <li>Invalid register names: <code>r03, r130</code></li>
+        </ul>
+
+        <h3>4.3 Label Syntax Rules</h3>
+        <ul>
+            <li>Labels must be <strong>at most 9 characters long</strong>.</li>
+            <li>A <strong>semicolon (:)</strong> must be placed <strong>at the end of the label name</strong>.</li>
+        </ul>
+
+        <h3>4.4 Sample Label and Branching Usage</h3>
+        <pre> This is a valid:-
+start:
+    addu r1, r2, 0x3
+    nop
+    b skp
+    nop
+    b 0x1
+    nop
+    b start
+skp:
+    hlt
+
+Example2: Valid:- label: b 0x1
+Example3: Invalid Case: b ox1 label:
+Example4: invalid Case: b label ox1
 </pre>
-</div>
+
+        <h3>4.5 Encoding and Character Limits</h3>
+        <ul>
+            <li>Maximum <strong>instruction encodes</strong>: <code>999</code></li>
+            <li>Maximum <strong>characters (excluding whitespace)</strong>: <code>30,000</code></li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>5. Summary</h2>
+        <p>Following these guidelines ensures a well-structured assembler with <strong>accurate instruction processing, validation, and binary generation</strong>.</p>
+    </div>
 
 </body>
 </html>
