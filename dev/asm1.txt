@@ -5,5 +5,5 @@ b skp
 nop
 b 0x1
 nop
-b start
 skp:
+b start

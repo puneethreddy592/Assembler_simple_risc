@@ -31,7 +31,6 @@ const unsigned int max_operands[21] = {
 void __message(char message[]);
 _Bool file_verify(int argc, char *argv[]);
 _Bool __init(int argc, char *argv[]){ // this is the initialsing funcion, that does file verification and sorts
-    __message("Program has initialised....");
     _Bool _initstatus0 = file_verify(argc, argv);
     if(!_initstatus0) {
         __message("The program has been terminated, due to fail in file validation...");
@@ -241,7 +240,6 @@ _Bool valid_token(char token[], instruction_encode *encode,unsigned short int cu
             }
             else {
                 valid_token_index++;
-                printf("%d token \n", valid_token_index);
                 valid_in = 1;
             }
         }
@@ -263,7 +261,6 @@ _Bool valid_token(char token[], instruction_encode *encode,unsigned short int cu
                     encode->r_or_i = 0;
                     label = encode->instruction_number - label;
                     encode->immediate_or_rs2_in.rs2_in = (-1)*label;
-                    printf("%d \n", label);
                 }
             }
             else {
@@ -276,7 +273,6 @@ _Bool valid_token(char token[], instruction_encode *encode,unsigned short int cu
             else {
                 valid_token_index++;
                 valid_in = 1;
-                printf("%d token \n", valid_token_index);
 
             }
          }
@@ -343,7 +339,6 @@ _Bool valid_token(char token[], instruction_encode *encode,unsigned short int cu
                 else {
                     valid_token_index++;
                     valid_in = 1;
-                    printf("%d token \n", valid_token_index);
 
                 }
             }
@@ -425,7 +420,6 @@ _Bool valid_token(char token[], instruction_encode *encode,unsigned short int cu
                     else {
                         valid_token_index++;
                         valid_in = 1;
-                        printf("%d token \n", valid_token_index);
 
                     }
                 }
@@ -473,7 +467,6 @@ _Bool valid_token(char token[], instruction_encode *encode,unsigned short int cu
                     else {
                         valid_token_index++;
                         valid_in = 1;
-                        printf("%d token \n", valid_token_index);
 
                     }
                 }
@@ -523,7 +516,6 @@ _Bool valid_token(char token[], instruction_encode *encode,unsigned short int cu
                     else {
                         valid_token_index++;
                         valid_in = 1;
-                        printf("%d token \n", valid_token_index);
 
                     }
                 }
@@ -537,9 +529,7 @@ _Bool pass_token(char token[], instruction_encode *encode, unsigned short int cu
     if( token[0] !='\0' ){
         static int i=0;
         i++;
-       printf("%d %s\n", i, token);
        if(strcmp(token,"hlt") == 0){
-           __message("Program Terminating, as hlt function has been reached\n");
            return FALSE;
        }
        else {
@@ -582,9 +572,7 @@ _Bool file_verify(int argc, char *argv[]){
     }
     else {
         fclose(file);
-        char text[100];
-        sprintf(text,"File exist, please check the file name \n Given File Name: %s", argv[1]);
-        __message(text);
+
     }
     char* extension_file_accepting[4]; // this is to check whether the extension of the file is proper or not
     // currently accepting only .txt

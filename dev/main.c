@@ -8,6 +8,9 @@ main function starting
 
 int main(int argc, char *argv[]){ // here i am taking the assembly file input thorough this argument
     __init(argc, argv);
+    remove("output.bin");
+    remove("output.int");
+    remove("output.hex");
     FILE *fptr = fopen(argv[1], "r");
     char *file_path = argv[1];
     char source[16000]; // i am taking an instuction lines of 100, max instructions per line is 16 characters excluding spaces, hence 30*1000 = 30000
@@ -35,8 +38,6 @@ int main(int argc, char *argv[]){ // here i am taking the assembly file input th
     instruction_encode encodes[1000]; // this stores an instruction line encode in struct
     char token[10] ="";
     unsigned short int token_index=0;
-    printf("The name of the file is %s \n", file_path);
-    printf("Total No of Characters in the given file is %d \n", source_len);
 
 
     while(source_len_copy--){ // parse and token while loop
@@ -128,10 +129,9 @@ int main(int argc, char *argv[]){ // here i am taking the assembly file input th
         }
     }
 
-printf("\nTotal No of instruction encoding done is %d \n", valid_token_index);
+
 char file_name[20];
-printf("\n \n Please enter a name for you bin file, don't include any extension (like .txt, .bin) internally we add it and max size is 10 \n fileName: ");
-scanf("%s",file_name);
+strcpy(file_name, "output");
 char file_bin_name[20];
 strcpy(file_bin_name, file_name);
 strcat(file_bin_name,".bin");
@@ -139,18 +139,12 @@ char file_int_name[20];
 strcpy(file_int_name, file_name);
 strcat(file_int_name,".int");
 
-printf("\nGiven file name, the binaries will be stored in %s\n", file_bin_name);
-printf("\n, The integer equivalent will be stored in %s \n", file_int_name);
 for(int i=0; i<valid_token_index;i++){
     instruction_encoder_formater_int(&encodes[i],file_int_name);
 }
-printf("Successfully Instruction encoding for the file is done \n");
 for(int i=0; i<valid_token_index;i++){
     instruction_encoder_formater_bin(&encodes[i], file_bin_name);
 }
-
-printf("Please check the %s file for the integer version of the binary instruction encoded code and also binary file : %s \n", file_int_name,file_bin_name);
-
 
 
 
