@@ -9,8 +9,8 @@ long int hexa_to_deci(char hex[]){
     for(i = length - 1; i >= 2; i--) {
         if(hex[i] >= '0' && hex[i] <= '9') {
             value = hex[i] - '0';
-        } else if(hex[i] >= 'A' && hex[i] <= 'F') {
-            value = hex[i] - 'A' + 10;
+        } else if(hex[i] >= 'a' && hex[i] <= 'f') {
+            value = hex[i] - 'a' + 10;
         }
         decimal += value * base;
         base = base * 16;
