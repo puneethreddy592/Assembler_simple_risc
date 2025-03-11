@@ -16,7 +16,38 @@ This assembler **translates Simple RISC assembly code** into integer-based binar
 
 ✅ **Binary File Generation**
 
-✅ **GUI Assembler (Work in Progress 🚧)**
+✅ **GUI Assembler (made with php and stored in /dev/GUI_ASSEMBLER)**
+
+## How To USE?
+the main fail is in dev, if you want to use it in windoes compile the code in windoes using the following
+```
+gcc -o main.exe main.c
+```
+If you are on other devices like mac or linux
+
+```
+gcc -o main main.c
+```
+And the GUI ASSEMBLER is made with php as server side logic
+
+With in the dev folder there is a folder called GUI_Assembler, now within this there is file_processing.php
+
+Now, at the lines 11 and 12 i have commented them, uncommet them if using in windows and comment 13 and 15 lines as they are linux-based system
+
+To start the localhost of the web project
+
+Naviage to GUI_Assembler Project, and type the following
+```
+php -S localhost:8000
+```
+
+The above command will localhost the website, now you type localhost:8000 in brower and you will see the assembler
+
+## Basic look on how the website looks like
+
+<img width="732" alt="Screenshot 2025-03-11 at 12 19 49 PM" src="https://github.com/user-attachments/assets/2a2c80c0-c778-40e8-885a-a11954cf4be3" />
+
+
 
 
 ---
@@ -47,6 +78,16 @@ This assembler **translates Simple RISC assembly code** into integer-based binar
         ├── asm1.txt          # 📄 Additional sample code
     
         ├── main              # 🔧 Compiled binary
+        
+        └── dev/
+
+            ├── index.html            # 🏗️ Contains the index to the assembler GUI
+    
+            ├── file_processing.php     # 🔍 Handles the user input and compiling
+    
+            ├── main.css         # 🏷️ Styling for the code
+        
+        
 
 
 ----------------------------------------
