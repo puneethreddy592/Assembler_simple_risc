@@ -79,7 +79,7 @@ The above command will localhost the website, now you type localhost:8000 in bro
     
         ├── main              # 🔧 Compiled binary
         
-        └── dev/
+        └── GUI Assembler/
 
             ├── index.html            # 🏗️ Contains the index to the assembler GUI
     
